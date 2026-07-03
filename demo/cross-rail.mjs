@@ -12,7 +12,10 @@
 // Fidelity, stated plainly:
 //   x402   — Cloudflare's UNMODIFIED x402-proxy-template on wrangler dev; the
 //            real x402@1.0.1 client signs; real EIP-712 verification at the
-//            facilitator (settlement simulated — no funded testnet wallet).
+//            facilitator. Settlement is REAL (on-chain Base Sepolia USDC via
+//            the x402.org facilitator, buyer holds zero ETH — EIP-3009 is
+//            payer-gasless) when .dev.vars omits FACILITATOR_URL; simulated
+//            when pointed at harness/local-facilitator.mjs.
 //   L402   — l402-op-authorize's real pre-payment hook (what lnget calls in
 //            production) on a synthetic invoice; no LND node.
 //   TRON   — the REAL merged WDK policy engine (PR #55) + applyPoliciesTo

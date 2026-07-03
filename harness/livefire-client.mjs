@@ -98,7 +98,7 @@ const authCookie = (r2.headers.get('set-cookie') ?? '').includes('auth_token=');
 verify('paid request returns 200 with settlement receipt + auth cookie', r2.status === 200 && !!paymentResponse && authCookie, `status=${r2.status} receipt=${paymentResponse} cookie=${authCookie}`);
 if (paymentResponse) {
   const receipt = JSON.parse(Buffer.from(paymentResponse, 'base64').toString('utf8'));
-  log(`  settlement receipt: success=${receipt.success} tx=${String(receipt.transaction).slice(0, 18)}… (facilitator-simulated settle; signature verification was real)`);
+  log(`  settlement receipt: success=${receipt.success} tx=${String(receipt.transaction).slice(0, 18)}… (real on-chain settle when the template points at a real facilitator; simulated when using harness/local-facilitator.mjs — signature verification is real in both)`);
 }
 const ledger = new CrossRailLedger(ledgerPath);
 const sumA = ledger.sumWindowConverted({ USDC: '1', sat: '0.0005' });

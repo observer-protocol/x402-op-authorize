@@ -28,13 +28,13 @@ that isn't written down is a claim we didn't earn.
 5. **Decision log is unsigned JSONL.** Signed PolicyEvaluationCredential
    emission (key-3, via the policy sidecar's /evaluate) is the service-tier
    path; wiring this engine's verdicts through it is roadmap.
-6. **Demo settlement is simulated.** The live-fire facilitator
-   (harness/local-facilitator.mjs) performs REAL EIP-712 signature
-   verification of the exact emitted payload and the real x402.org facilitator
-   was probed with the same bytes (signature accepted; unfunded testnet wallet
-   → insufficient_balance, as expected). The only unexercised hop is the
-   on-chain `transferWithAuthorization` broadcast — fund a Base Sepolia USDC
-   wallet to close it (TESTING.md in Cloudflare's template).
+6. **Settlement fidelity is configuration-dependent — and the real path is
+   CLOSED.** With harness/local-facilitator.mjs, settlement is simulated
+   (signature verification still real). With the template pointed at the
+   real x402.org facilitator and a funded wallet, the full loop is proven:
+   on 2026-07-03 the demo's three $0.01 legs settled as real Base Sepolia
+   USDC transfers (blocks 43667763–64) from a buyer wallet holding zero ETH
+   — EIP-3009's payer-gasless property demonstrated on-chain.
 7. **v1 wire in the harness.** The Cloudflare template speaks x402Version 1
    (x402@1.0.1, X-PAYMENT header). x402 v2 (CAIP-2 networks,
    PAYMENT-SIGNATURE header) signs the SAME EIP-3009 typed data, so the
