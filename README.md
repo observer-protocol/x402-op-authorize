@@ -1,6 +1,6 @@
 # x402-op-authorize
 
-Observer Protocol authorization for [x402](https://x402.org) payments, enforced at the signer boundary. The 5th OP engine: same shared `@observer-protocol/policy-engine` core as `ows-op-verify`, `mppx-op-account`, `wdk-op-policy` and `l402-op-authorize` — only the decoder changed.
+**The x402 instance of [OP Crossrail](https://observerprotocol.org)** — Observer Protocol's cross-rail authorization layer. Crossrail is one signed mandate, one rolling budget, and one shared spend ledger enforced across every rail an agent pays on; this engine enforces it at the x402 signer boundary. Same shared `@observer-protocol/policy-engine` core as the OWS, mppx/Tempo, Tether-WDK and L402/Lightning instances — only the decoder changed.
 
 x402 (the protocol behind Cloudflare's Monetization Gateway and Coinbase's payment stack) makes the payment prove **funds**. It does not prove **authority**: nothing in the flow checks that the agent was authorized by its principal to spend, at what cap, on what. This engine closes that gap on the buyer side, where the one structural chokepoint lives: an x402 exact/EVM payment IS an EIP-3009 `transferWithAuthorization` signature. Interpose there and a denied payment never exists — not "rejected", not "reverted": **never signed**.
 
@@ -31,7 +31,7 @@ const account = createObserverX402Account(privateKeyToAccount(PRIVATE_KEY), {
 
 Every `signTypedData` call is classified. x402 payments (EIP-3009 `TransferWithAuthorization`) are evaluated against the agent's signed delegation — per-payment ceiling, counterparty (the **signed** `to`, never the 402 body's claims), velocity, cross-rail budget, credential validity/revocation/signer-boundary — fail-closed on every miss. Recognized payment suites this engine does not decode (Permit2, `receiveWithAuthorization`) deny. Unknown typed data denies by default. `signTransaction`, `signMessage` and raw `sign` deny by default.
 
-## One budget, every rail
+## OP Crossrail: one budget, every rail
 
 Schema v2.2 adds `tradingMandate.crossRailBudget`: one rolling-24h budget consumed across **all** rails a delegation spans, converted at rates the principal attests **inside the signed credential** — no FX feed, no oracle, nothing unsigned in the evaluation path:
 

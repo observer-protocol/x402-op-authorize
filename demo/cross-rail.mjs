@@ -93,8 +93,16 @@ const total = () => {
   return s.ok ? formatBudgetUnits(s.total) : `<unestablishable: ${s.reason}>`;
 };
 
-// Rail 1 buyer — x402: real viem account wrapped by OP, handed to the unmodified x402 client.
-const account = createObserverX402Account(privateKeyToAccount(generatePrivateKey()), {
+// Rail 1 buyer — x402: real viem account wrapped by OP, handed to the unmodified
+// x402 client. Key resolution: PRIVATE_KEY env > the funded demo key in
+// ~/.config/op-crossrail/demo-buyer.key > a fresh ephemeral key. The key file
+// lives OUTSIDE the repo by standing policy — never in code or workspace files.
+import { readFileSync as readKeyFile, existsSync as keyExists } from 'node:fs';
+import { homedir } from 'node:os';
+const KEY_FILE = join(homedir(), '.config/op-crossrail/demo-buyer.key');
+const buyerKey = process.env.PRIVATE_KEY
+  ?? (keyExists(KEY_FILE) ? readKeyFile(KEY_FILE, 'utf8').trim() : generatePrivateKey());
+const account = createObserverX402Account(privateKeyToAccount(buyerKey), {
   policy, crossRailLedgerPath: ledgerPath,
 });
 // Rail 2 buyer — Lightning: the real l402-op-authorize pre-payment hook (what lnget calls).

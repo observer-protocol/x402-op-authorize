@@ -1,4 +1,4 @@
-# x402-op-authorize cross-rail demo transcript (THREE RAILS)
+# OP Crossrail — three-rail demo transcript (one mandate, one budget: x402 + L402 + WDK/TRON)
 # Captured: 2026-07-03 17:26 UTC — Cloudflare x402-proxy-template (unmodified, wrangler dev 4.88.0) + l402-op-authorize hook + real WDK PR #55 policy engine; x402@1.0.1 client; local facilitator w/ real EIP-712 verification + simulated settlement
 
 Observer Protocol — one budget, three rails, denied on every rail

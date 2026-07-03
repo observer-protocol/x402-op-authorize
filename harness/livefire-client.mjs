@@ -61,8 +61,13 @@ const credPath = join(out, 'agent-delegation.json');
 writeFileSync(credPath, JSON.stringify(mandate, null, 2));
 const ledgerPath = join(out, 'cross-rail-ledger.jsonl');
 
-// ── The wallet: a real (ephemeral, unfunded) EVM key, wrapped by OP.
-const pk = generatePrivateKey();
+// ── The wallet: PRIVATE_KEY env > the funded demo key in
+// ~/.config/op-crossrail/demo-buyer.key > a fresh ephemeral (unfunded) key.
+import { existsSync as keyExists } from 'node:fs';
+import { homedir } from 'node:os';
+const KEY_FILE = join(homedir(), '.config/op-crossrail/demo-buyer.key');
+const pk = process.env.PRIVATE_KEY
+  ?? (keyExists(KEY_FILE) ? readFileSync(KEY_FILE, 'utf8').trim() : generatePrivateKey());
 const baseAccount = privateKeyToAccount(pk);
 const account = createObserverX402Account(baseAccount, {
   policy: policyConfig(principal.did, agent.did, out, credPath),

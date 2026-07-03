@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://observerprotocol.org/schemas/delegation/v2.2.json",
   "title": "Delegation Credential Schema v2.2",
-  "description": "JSON Schema for DelegationCredential Verifiable Credentials aligned with AIP v0.8 draft-1. Extends v2.1 with exactly one addition: tradingMandate.crossRailBudget (binding) — one rolling-24h budget consumed across every rail the delegation spans, converted at principal-attested rates carried inside the signed credential (oracle-free; the AIP v0.8 same-currency invariant holds because every comparison happens in the budget currency using only signed data). v2.1 is frozen and unchanged at its own URL per the schema immutability policy (2026-06-03).",
+  "description": "JSON Schema for DelegationCredential Verifiable Credentials aligned with AIP v0.8 draft-1. Extends v2.1 with exactly one addition — the OP Crossrail vocabulary: tradingMandate.crossRailBudget (binding) — one rolling-24h budget consumed across every rail the delegation spans, converted at principal-attested rates carried inside the signed credential (oracle-free; the AIP v0.8 same-currency invariant holds because every comparison happens in the budget currency using only signed data). v2.1 is frozen and unchanged at its own URL per the schema immutability policy (2026-06-03).",
   "type": "object",
   "required": [
     "@context",
