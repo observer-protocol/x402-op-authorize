@@ -54,8 +54,8 @@ that isn't written down is a claim we didn't earn.
     suite; no chain broadcast. wdk-op-policy has never been live-fired
     against `@tetherto/wdk-wallet-tron` itself (beta.7, vs wdk-wallet base
     beta.10) — verify version alignment at the first live TRON deployment.
-11. **Schema v2.2 URL is minted, not yet published.** The credential schema
+11. **Schema v2.3 URL is minted, not yet published.** The credential schema
     file (docs/schemas/delegation-v2.2.json) must be published at
-    https://observerprotocol.org/schemas/delegation/v2.2.json before external
+    https://observerprotocol.org/schemas/delegation/v2.3.json before external
     parties can resolve it. v2.1 is frozen forever, unchanged, per the schema
     immutability policy.

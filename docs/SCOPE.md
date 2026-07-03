@@ -52,7 +52,7 @@ full-mode L1 principal-binding is the shared core's scaffold (KNOWN-LIMITS §1).
 
 ## §6 Cross-rail budget (G8)
 
-Schema v2.2 `tradingMandate.crossRailBudget` + the shared `CrossRailLedger`
+Schema v2.3 `tradingMandate.crossRailBudget` + the shared `CrossRailLedger`
 (policy-engine core): one rolling-24h budget across every rail the delegation
 spans. Rates are principal-attested inside the signed credential — the
 evaluator is oracle-free and the AIP v0.8 same-currency invariant holds

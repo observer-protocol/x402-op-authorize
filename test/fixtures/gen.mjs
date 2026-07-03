@@ -24,7 +24,7 @@ function sortKeys(o) {
 export function jcs(o) { return Buffer.from(JSON.stringify(sortKeys(o)), 'utf8'); }
 const sha = (b) => createHash('sha256').update(b).digest();
 
-export const SCHEMA_V22 = 'https://observerprotocol.org/schemas/delegation/v2.2.json';
+export const SCHEMA_V22 = 'https://observerprotocol.org/schemas/delegation/v2.3.json';
 
 /** Generate an Ed25519 did:key identity. */
 export function makeAgent() {
@@ -35,7 +35,7 @@ export function makeAgent() {
 }
 
 /** Issue a signed delegation credential with an arbitrary actionScope +
- * tradingMandate (schema v2.2 vocabulary). */
+ * tradingMandate (schema v2.3 vocabulary). */
 export function issueVac({ issuerDid, issuerPriv, issuerVm, subjectDid, actionScope, tradingMandate, validUntil = '2027-01-01T00:00:00Z' }) {
   const doc = {
     '@context': ['https://www.w3.org/ns/credentials/v2'],

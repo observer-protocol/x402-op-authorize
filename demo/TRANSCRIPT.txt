@@ -1,9 +1,9 @@
-# OP Crossrail — three-rail demo transcript (one mandate, one budget: x402 + L402 + WDK/TRON) — REAL SETTLEMENT TAKE
-# Captured: 2026-07-03 18:37 UTC — REAL x402.org facilitator, REAL on-chain Base Sepolia USDC settlement (3 transfers from 0x58Aa…6C07, blocks 43667763-64, buyer wallet holds ZERO ETH — EIP-3009 gasless). Cloudflare x402-proxy-template unmodified (wrangler dev 4.88.0) + l402-op-authorize hook + real WDK PR #55 policy engine; x402@1.0.1 client.
+# OP Crossrail — three-rail demo transcript (one mandate, one budget: x402 + L402 + WDK/TRON) — REAL SETTLEMENT TAKE, schema v2.3
+# Captured: 2026-07-03 19:07 UTC — REAL x402.org facilitator, REAL on-chain Base Sepolia USDC settlement from 0x58Aa…6C07 (buyer wallet holds ZERO ETH — EIP-3009 payer-gasless). Cloudflare x402-proxy-template unmodified (wrangler dev 4.88.0) + l402-op-authorize hook + real WDK PR #55 policy engine; x402@1.0.1 client; delegation schema v2.3 (OP Crossrail vocabulary).
 
 Observer Protocol — one budget, three rails, denied on every rail
-principal did:key:z6MkficAzp25YjcKpq7tQK3NyLr63i…
-agent     did:key:z6MkgUa4mH4C7TuwyDL4YYA2kMaTwV…  EVM wallet 0x58Aa16206103c4eacd0461370a91acd81B316C07
+principal did:key:z6MkqRvrTC82748fhjoazTm5q9iPpe…
+agent     did:key:z6MktDVy1Ce6buUzBX2pAQ9g66RuXE…  EVM wallet 0x58Aa16206103c4eacd0461370a91acd81B316C07
 mandate: $5.00 / rolling 24h across ALL rails — rates attested in the signed credential (USDC=1, USDT=1, sat=0.0005); no oracle anywhere in the flow
 
 A. x402 rail — $0.01 USDC via Cloudflare x402-proxy-template
@@ -57,7 +57,7 @@ DEMO GREEN — one signed mandate, one 24h budget: USDC-on-Base (x402) + Lightni
 # Live-fire transcript (harness/livefire-client.mjs) — real x402.org facilitator, funded wallet, REAL on-chain settle
 
 buyer wallet (ephemeral testnet key): 0x58Aa16206103c4eacd0461370a91acd81B316C07
-principal: did:key:z6MkjhkUtKyqj9VQAFDAbwjK…  agent: did:key:z6Mkhj5cUnhZ7dym1mYgvVAw…
+principal: did:key:z6MkvBecXdEMMQbSiaL1JATh…  agent: did:key:z6MkrxBYMDTfAEUipwyrvnKR…
 mandate: crossRailBudget $5/P1D, rates {USDC:1, sat:0.0005}, allowList [0x00000000…]
 
 A. 402 challenge from the Cloudflare template
@@ -67,7 +67,7 @@ A. 402 challenge from the Cloudflare template
 A. OP-gated signing + payment (x402 client unchanged)
   OK  EIP-3009 authorization signed (payment within $5 budget)
   OK  paid request returns 200 with settlement receipt + auth cookie
-  settlement receipt: success=true tx=0xed5700571aaa4e87… (real on-chain settle when the template points at a real facilitator; simulated when using harness/local-facilitator.mjs — signature verification is real in both)
+  settlement receipt: success=true tx=0xa11d4124267887fe… (real on-chain settle when the template points at a real facilitator; simulated when using harness/local-facilitator.mjs — signature verification is real in both)
   OK  spend recorded in shared cross-rail ledger
   cross-rail ledger total: 0.01 USD
 

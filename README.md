@@ -13,7 +13,7 @@ const account = createObserverX402Account(privateKeyToAccount(PRIVATE_KEY), {
     credentialPath: '/path/to/agent-delegation.json', // signed, revocable OP delegation
     issuerDid: 'did:key:z6Mk…',                       // pinned principal
     agentDid: 'did:key:z6Mk…',
-    schemaAllowlist: ['https://observerprotocol.org/schemas/delegation/v2.2.json'],
+    schemaAllowlist: ['https://observerprotocol.org/schemas/delegation/v2.3.json'],
     rails: { 'eip155:8453': { rail: 'base-mainnet', currency: 'ETH', decimals: 18, family: 'evm' } },
     auditLog: '/var/lib/op/decisions.jsonl',
     cacheDir: '/var/lib/op/cache',
@@ -33,7 +33,7 @@ Every `signTypedData` call is classified. x402 payments (EIP-3009 `TransferWithA
 
 ## OP Crossrail: one budget, every rail
 
-Schema v2.2 adds `tradingMandate.crossRailBudget`: one rolling-24h budget consumed across **all** rails a delegation spans, converted at rates the principal attests **inside the signed credential** — no FX feed, no oracle, nothing unsigned in the evaluation path:
+Schema v2.3 adds `tradingMandate.crossRailBudget`: one rolling-24h budget consumed across **all** rails a delegation spans, converted at rates the principal attests **inside the signed credential** — no FX feed, no oracle, nothing unsigned in the evaluation path:
 
 ```json
 "crossRailBudget": { "amount": "5", "currency": "USD", "window": "P1D",
@@ -52,7 +52,7 @@ Three buyer gates (`x402-op-authorize`, `l402-op-authorize`, `wdk-op-policy`) sh
 
 ```
 npm test                      # 40/40 conformance cases (allow + deny per rule)
-node ../op-policy-engine/packages/parity-harness/run.mjs   # 231 cases, 5 engines
+node ../op-policy-engine/packages/parity-harness/run.mjs   # 245 cases, 5 engines
 ```
 
 Live-fire against the Cloudflare template: `harness/README.md`.

@@ -4,7 +4,7 @@
 
 | Surface | Coverage |
 |---|---|
-| EIP-3009 TransferWithAuthorization (x402 exact/EVM, v1 + v2 wire) | ENFORCED — full shared mandate: per-payment ceiling (`maxNotionalPerOrder` / `per_transaction_ceiling`), counterparty allow/block (signed `to`), temporal windows, velocity (`dailyVolumeCap` via rolling-24h same-asset ledger view), crossRailBudget (v2.2), allowed_rails, authorization-level configs; credential integrity (proof, expiry, revocation, issuer pin, schema allowlist, signer-boundary) |
+| EIP-3009 TransferWithAuthorization (x402 exact/EVM, v1 + v2 wire) | ENFORCED — full shared mandate: per-payment ceiling (`maxNotionalPerOrder` / `per_transaction_ceiling`), counterparty allow/block (signed `to`), temporal windows, velocity (`dailyVolumeCap` via rolling-24h same-asset ledger view), crossRailBudget (v2.3), allowed_rails, authorization-level configs; credential integrity (proof, expiry, revocation, issuer pin, schema allowlist, signer-boundary) |
 | authorization.from ≠ wrapped wallet | DENY (never sign transfers out of another wallet) |
 | validBefore in the past | DENY (dead authorization) |
 | Unknown token contract | unenforceable → DENY under any binding amount/counterparty constraint |
