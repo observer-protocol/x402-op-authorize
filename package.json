@@ -1,0 +1,68 @@
+{
+  "name": "@observer-protocol/x402-op-authorize",
+  "version": "0.1.0",
+  "description": "Observer Protocol authorization for x402 payments (Cloudflare Monetization Gateway, Coinbase x402). Wraps the agent's EVM signing account and verifies a signed, revocable delegation against the proposed x402 payment at the signer boundary, fail-closed: a denied payment is never signed, so it can never settle. Shared @observer-protocol/policy-engine core: only the decoder changed.",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist/",
+    "docs/SCOPE.md",
+    "docs/SUPPORT-MATRIX.md",
+    "docs/KNOWN-LIMITS.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node18 --format=esm --external:viem --outfile=dist/index.mjs && esbuild src/index.ts --bundle --platform=node --target=node18 --format=cjs --external:viem --outfile=dist/index.cjs && tsc --emitDeclarationOnly --outDir dist",
+    "typecheck": "tsc --noEmit",
+    "fixtures": "node test/fixtures/gen.mjs",
+    "test": "npm run typecheck && npm run build && npm run fixtures && node test/run.mjs",
+    "demo": "node demo/cross-rail.mjs",
+    "prepublishOnly": "npm run typecheck && npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/observer-protocol/x402-op-authorize.git"
+  },
+  "keywords": [
+    "x402",
+    "http-402",
+    "cloudflare",
+    "monetization-gateway",
+    "eip-3009",
+    "usdc",
+    "base",
+    "agentic-commerce",
+    "observer-protocol",
+    "verifiable-credentials",
+    "delegation",
+    "eddsa-jcs-2022"
+  ],
+  "dependencies": {
+    "@observer-protocol/policy-engine": "file:../op-policy-engine/packages/policy-engine"
+  },
+  "devDependencies": {
+    "@observer-protocol/l402-op-authorize": "file:../l402-op-authorize",
+    "@types/node": "^25.9.2",
+    "esbuild": "^0.21.0",
+    "typescript": "^5.4.0",
+    "viem": "^2.54.2",
+    "x402": "^1.0.1"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

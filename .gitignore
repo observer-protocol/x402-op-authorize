@@ -1,0 +1,7 @@
+node_modules/
+dist/
+test/fixtures/out/
+harness/out/
+demo/out/
+*.log
+.DS_Store
