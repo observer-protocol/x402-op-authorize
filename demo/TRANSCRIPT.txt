@@ -1,51 +1,63 @@
-# x402-op-authorize cross-rail demo transcript
-# Captured: 2026-07-03 16:44 UTC — Cloudflare x402-proxy-template (unmodified) on wrangler dev 4.88.0, x402@1.0.1 client, local facilitator w/ real EIP-712 verification + simulated settlement
+# x402-op-authorize cross-rail demo transcript (THREE RAILS)
+# Captured: 2026-07-03 17:26 UTC — Cloudflare x402-proxy-template (unmodified, wrangler dev 4.88.0) + l402-op-authorize hook + real WDK PR #55 policy engine; x402@1.0.1 client; local facilitator w/ real EIP-712 verification + simulated settlement
 
-Observer Protocol — one budget, two rails, deny at the key
-principal did:key:z6Mkie7abQYpLpDDLKETEpwes2NL1x…
-agent     did:key:z6MkiToGCWNSuArbMbbFmnEY7RetLb…  wallet 0xdF652E31b0829446e3d18Ec7970cbC3e2b900862
-mandate: $5.00 / rolling 24h across ALL rails — rates attested in the signed credential (USDC=1, sat=0.0005); no oracle anywhere in the flow
+Observer Protocol — one budget, three rails, denied on every rail
+principal did:key:z6MkkMpQhnegDnnD2b8gnsNcAewkmJ…
+agent     did:key:z6MksmEDyHwoyRF3RcnFt1Jj3es7XJ…  EVM wallet 0x6735b19084D060C1281D6436FC754372C29f40e5
+mandate: $5.00 / rolling 24h across ALL rails — rates attested in the signed credential (USDC=1, USDT=1, sat=0.0005); no oracle anywhere in the flow
 
 A. x402 rail — $0.01 USDC via Cloudflare x402-proxy-template
    ✓ 402 challenged, OP allowed, EIP-3009 signed, template returned 200
    budget consumed: 0.01 of 5 USD
 
-B. Lightning rail — 9940-sat L402 invoice ($4.97) via l402-op-authorize hook
+B. Lightning rail — 5940-sat L402 invoice ($2.97) via l402-op-authorize hook
    ✓ hook allowed the payment and recorded it in the SAME ledger
+   budget consumed: 2.98 of 5 USD
+
+C. TRON rail — 2 USDT (TRC-20) via the real WDK policy engine
+   ✓ WDK engine allowed the transfer (OP ALLOW rule), spend recorded in the SAME ledger
    budget consumed: 4.98 of 5 USD
 
-C+D. x402 rail — two more $0.01 payments (budget reaches exactly $5.00)
-   ✓ C allowed (4.99)
-   ✓ D allowed (5.00 — budget exactly consumed, ≤ cap holds)
+D+E. x402 rail — two more $0.01 payments (budget reaches exactly $5.00)
+   ✓ D allowed (4.99)
+   ✓ E allowed (5.00 — budget exactly consumed, ≤ cap holds)
    budget consumed: 5 of 5 USD
 
-E. x402 rail — next $0.01 → DENY AT THE KEY
+F. x402 rail — next $0.01 → DENY AT THE KEY
    ✓ ObserverDenyError thrown INSIDE the unmodified x402 client
    ✓ reason: cross-rail budget
    [cross-rail] projected rolling-24h cross-rail spend 5.01 USD exceeds the budget 5 USD (this payment: 0.01 USD as USDC at the principal-attested rate 1)
    ✓ no signature exists → nothing settled → resource still 402
 
-F. Lightning rail — 200-sat invoice ($0.10) → DENY AT THE HOOK
+G. Lightning rail — 200-sat invoice ($0.10) → DENY AT THE HOOK
    ✓ hook denied from the same shared budget
    [cross-rail] projected rolling-24h cross-rail spend 5.1 USD exceeds the budget 5 USD (this payment: 0.1 USD as sat at the principal-attested rate 0.0005)
 
+H. TRON rail — 1 USDT → DENY INSIDE THE WDK POLICY ENGINE
+   ✓ WDK engine raised PolicyViolationError (OP DENY rule, fail-closed backbone)
+   ✓ base transfer was never invoked (nothing to broadcast)
+   Policy violation: op-hardening/op-violation
+
 Decision log (append-only, one line per verdict)
    ALLOW x402-payment mandate satisfied
+   ALLOW op-allow     mandate satisfied
    ALLOW x402-payment mandate satisfied
    ALLOW x402-payment mandate satisfied
    DENY  x402-payment [cross-rail] projected rolling-24h cross-rail spend 5.01 USD exceeds the budget 5 USD (this payment:
+   DENY  op-deny      [cross-rail] projected rolling-24h cross-rail spend 6 USD exceeds the budget 5 USD (this payment: 1 
 Shared cross-rail ledger (demo/out/cross-rail-ledger.jsonl)
-   x402:eip155:84532     10000 USDC
-   lightning              9940 sat
-   x402:eip155:84532     10000 USDC
-   x402:eip155:84532     10000 USDC
+   x402:eip155:84532       10000 USDC
+   lightning                5940 sat
+   wdk:tron:mainnet      2000000 USDT
+   x402:eip155:84532       10000 USDC
+   x402:eip155:84532       10000 USDC
 
-DEMO GREEN — one signed mandate, one 24h budget, USDC-on-Base + Lightning, over-budget attempts denied at the key (x402) and at the hook (L402).
+DEMO GREEN — one signed mandate, one 24h budget: USDC-on-Base (x402) + Lightning (L402) + USDT-on-TRON (WDK). Over-budget attempts denied at the key, at the hook, and inside Tether's own policy engine.
 
 # Live-fire transcript (harness/livefire-client.mjs) — includes real x402.org facilitator probe
 
-buyer wallet (ephemeral testnet key): 0xE37eec0B562cFdBa966561E3851232E3c01D6255
-principal: did:key:z6MkrPyZkdTPhw1xeFSD6CY5…  agent: did:key:z6Mko4r1HheGCqDrQZiyLPZ4…
+buyer wallet (ephemeral testnet key): 0xd5036c05b894588378c4e4082ab9230F1817541c
+principal: did:key:z6Mkj6vBi7X9FqoZTn4ckXLs…  agent: did:key:z6MkrCDUJr5vHbS4KYxB97am…
 mandate: crossRailBudget $5/P1D, rates {USDC:1, sat:0.0005}, allowList [0x00000000…]
 
 A. 402 challenge from the Cloudflare template
@@ -55,7 +67,7 @@ A. 402 challenge from the Cloudflare template
 A. OP-gated signing + payment (x402 client unchanged)
   OK  EIP-3009 authorization signed (payment within $5 budget)
   OK  paid request returns 200 with settlement receipt + auth cookie
-  settlement receipt: success=true tx=0xbe97e28964fcc4f8… (facilitator-simulated settle; signature verification was real)
+  settlement receipt: success=true tx=0xeb9e09385f84d0f2… (facilitator-simulated settle; signature verification was real)
   OK  spend recorded in shared cross-rail ledger
   cross-rail ledger total: 0.01 USD
 
@@ -68,7 +80,7 @@ B. Lightning consumes the budget (same ledger, other rail) → x402 deny AT THE 
   OK  resource remains 402 (nothing was paid, nothing to revert)
 
 C. Real-facilitator probe (x402.org) on the exact scenario-A payload
-  x402.org/facilitator/verify → HTTP 200: {"isValid":false,"invalidReason":"invalid_exact_evm_insufficient_balance","payer":"0xE37eec0B562cFdBa966561E3851232E3c01D6255"}
+  x402.org/facilitator/verify → HTTP 200: {"isValid":false,"invalidReason":"invalid_exact_evm_insufficient_balance","payer":"0xd5036c05b894588378c4e4082ab9230F1817541c"}
   OK  real facilitator parsed + judged our payload (any non-signature reason = our bytes are valid x402)
 
 LIVE-FIRE GREEN — audit log: /Users/agentic/Desktop/OP_AT/x402-op-authorize/harness/out/decisions.jsonl

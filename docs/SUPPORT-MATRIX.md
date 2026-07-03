@@ -27,8 +27,8 @@
 | Claim | Status |
 |---|---|
 | 40/40 engine conformance (allow + deny per rule) | GREEN (`npm test`) |
-| 231/231 parity harness, 5 engines, shared core | GREEN |
+| 245/245 parity harness, 5 engines, shared core | GREEN |
 | Live-fire vs unmodified Cloudflare x402-proxy-template (wrangler dev), x402@1.0.1 client | GREEN — 402→sign→X-PAYMENT→verify→settle→200; deny side: ObserverDenyError inside the client, no signature, resource stays 402 |
 | Facilitator verification of the exact emitted payload | GREEN — local facilitator does real EIP-712 recovery; real x402.org facilitator probe on the same bytes: signature accepted, `insufficient_balance` (unfunded testnet wallet, expected) |
 | On-chain settlement (Base Sepolia broadcast) | NOT YET — needs a faucet-funded testnet USDC wallet (KNOWN-LIMITS §6) |
-| Cross-rail demo (one $5 budget: USDC-on-Base + Lightning, both rails deny over-budget) | GREEN — `demo/TRANSCRIPT.txt` |
+| Cross-rail demo (one $5 budget, THREE rails: USDC-on-Base via the Cloudflare template + Lightning via the l402 hook + USDT-on-TRON via the real WDK policy engine; all three deny over-budget) | GREEN — `demo/TRANSCRIPT.txt` |

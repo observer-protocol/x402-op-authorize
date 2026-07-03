@@ -48,7 +48,13 @@ that isn't written down is a claim we didn't earn.
 9. **Rolling-24h "day".** Both counters (velocity, cross-rail) use a rolling
    24h window here; the core's velocity note documents calendar-day counters
    elsewhere. Rolling ⊇ calendar-day, so this only ever denies earlier.
-10. **Schema v2.2 URL is minted, not yet published.** The credential schema
+10. **TRON leg fidelity.** The demo's USDT-TRON leg runs through the REAL
+    merged WDK policy engine (PR #55) and the real OP ALLOW/DENY pair on a
+    mock TRON account — the same fidelity as wdk-op-policy's conformance
+    suite; no chain broadcast. wdk-op-policy has never been live-fired
+    against `@tetherto/wdk-wallet-tron` itself (beta.7, vs wdk-wallet base
+    beta.10) — verify version alignment at the first live TRON deployment.
+11. **Schema v2.2 URL is minted, not yet published.** The credential schema
     file (docs/schemas/delegation-v2.2.json) must be published at
     https://observerprotocol.org/schemas/delegation/v2.2.json before external
     parties can resolve it. v2.1 is frozen forever, unchanged, per the schema

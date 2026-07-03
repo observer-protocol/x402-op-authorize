@@ -40,7 +40,7 @@ Schema v2.2 adds `tradingMandate.crossRailBudget`: one rolling-24h budget consum
                      "rates": { "USDC": "1", "sat": "0.0005" } }
 ```
 
-Both buyer gates (`x402-op-authorize`, `l402-op-authorize`) share one append-only ledger. `demo/cross-rail.mjs` runs the full story against Cloudflare's **unmodified** [x402-proxy-template](https://github.com/cloudflare/templates/tree/main/x402-proxy-template): a $5 budget consumed to exactly $5.00 across USDC-on-Base and Lightning, after which the x402 attempt dies **at the key** (no signature ever exists; the resource stays 402) and the Lightning attempt dies at the lnget pre-payment hook. Transcript: `demo/TRANSCRIPT.txt`.
+Three buyer gates (`x402-op-authorize`, `l402-op-authorize`, `wdk-op-policy`) share one append-only ledger. `demo/cross-rail.mjs` runs the full story: a $5 budget consumed to exactly $5.00 across **USDC on Base** (via Cloudflare's **unmodified** [x402-proxy-template](https://github.com/cloudflare/templates/tree/main/x402-proxy-template)), **Lightning** (via the lnget pre-payment hook), and **USDT on TRON** (via Tether's real merged WDK policy engine). After that, every rail refuses: the x402 attempt dies **at the key** (no signature ever exists; the resource stays 402), the Lightning attempt dies at the hook, and the TRON transfer dies inside the WDK engine's fail-closed DENY rule with the base transfer never invoked. USDT carries its own attested rate (explicitly `"1"` — no implicit peg-equivalence with USDC anywhere in the evaluator). Transcript: `demo/TRANSCRIPT.txt`.
 
 ## Enforcement-locus claim discipline
 

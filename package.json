@@ -53,6 +53,7 @@
   },
   "devDependencies": {
     "@observer-protocol/l402-op-authorize": "file:../l402-op-authorize",
+    "@observer-protocol/wdk-op-policy": "file:../wdk-op-policy",
     "@types/node": "^25.9.2",
     "esbuild": "^0.21.0",
     "typescript": "^5.4.0",
