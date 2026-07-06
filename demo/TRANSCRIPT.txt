@@ -1,9 +1,10 @@
-# OP Crossrail — three-rail demo transcript (one mandate, one budget: x402 + L402 + WDK/TRON) — REAL SETTLEMENT TAKE, schema v2.3
-# Captured: 2026-07-03 19:07 UTC — REAL x402.org facilitator, REAL on-chain Base Sepolia USDC settlement from 0x58Aa…6C07 (buyer wallet holds ZERO ETH — EIP-3009 payer-gasless). Cloudflare x402-proxy-template unmodified (wrangler dev 4.88.0) + l402-op-authorize hook + real WDK PR #55 policy engine; x402@1.0.1 client; delegation schema v2.3 (OP Crossrail vocabulary).
+# OP Crossrail — three-rail demo transcript (one mandate, one budget: x402 + L402 + WDK/TRON)
+# REAL SETTLEMENT TAKE (take 5) — production x402.org facilitator, on-chain Base Sepolia USDC settlement from 0x58Aa16206103c4eacd0461370a91acd81B316C07 (buyer wallet holds ZERO ETH: EIP-3009 payer-gasless). Per-take settlement evidence with full tx hashes: demo/FIDELITY-NOTES.md
+# Captured: 2026-07-06 16:11 UTC — Cloudflare x402-proxy-template unmodified (wrangler dev 4.88.0) + l402-op-authorize pre-payment hook + OP policies on Tether's WDK policy engine (PR #55); x402@1.0.1 client; delegation schema v2.3 (OP Crossrail vocabulary).
 
 Observer Protocol — one budget, three rails, denied on every rail
-principal did:key:z6MkqRvrTC82748fhjoazTm5q9iPpe…
-agent     did:key:z6MktDVy1Ce6buUzBX2pAQ9g66RuXE…  EVM wallet 0x58Aa16206103c4eacd0461370a91acd81B316C07
+principal did:key:z6MkgwYvWPkVPXuVFV4Dy2tAWqziRj…
+agent     did:key:z6MkgMTi88yjYw9JGD82mMzboXqmCs…  EVM wallet 0x58Aa16206103c4eacd0461370a91acd81B316C07
 mandate: $5.00 / rolling 24h across ALL rails — rates attested in the signed credential (USDC=1, USDT=1, sat=0.0005); no oracle anywhere in the flow
 
 A. x402 rail — $0.01 USDC via Cloudflare x402-proxy-template
@@ -54,10 +55,10 @@ Shared cross-rail ledger (demo/out/cross-rail-ledger.jsonl)
 
 DEMO GREEN — one signed mandate, one 24h budget: USDC-on-Base (x402) + Lightning (L402) + USDT-on-TRON (WDK). Over-budget attempts denied at the key, at the hook, and inside Tether's own policy engine.
 
-# Live-fire transcript (harness/livefire-client.mjs) — real x402.org facilitator, funded wallet, REAL on-chain settle
+# Live-fire section (harness/livefire-client.mjs) — same real facilitator, same funded wallet
 
 buyer wallet (ephemeral testnet key): 0x58Aa16206103c4eacd0461370a91acd81B316C07
-principal: did:key:z6MkvBecXdEMMQbSiaL1JATh…  agent: did:key:z6MkrxBYMDTfAEUipwyrvnKR…
+principal: did:key:z6Mktjv4LYAX2fWURL9MXWXw…  agent: did:key:z6MkhhtmLSMMWcXfrDyChBtr…
 mandate: crossRailBudget $5/P1D, rates {USDC:1, sat:0.0005}, allowList [0x00000000…]
 
 A. 402 challenge from the Cloudflare template
@@ -67,7 +68,7 @@ A. 402 challenge from the Cloudflare template
 A. OP-gated signing + payment (x402 client unchanged)
   OK  EIP-3009 authorization signed (payment within $5 budget)
   OK  paid request returns 200 with settlement receipt + auth cookie
-  settlement receipt: success=true tx=0xa11d4124267887fe… (real on-chain settle when the template points at a real facilitator; simulated when using harness/local-facilitator.mjs — signature verification is real in both)
+  settlement receipt: success=true tx=0x4167c75c2c748ab1… (settlement fidelity per facilitator config: demo/FIDELITY-NOTES.md)
   OK  spend recorded in shared cross-rail ledger
   cross-rail ledger total: 0.01 USD
 
@@ -83,7 +84,7 @@ C. Real-facilitator probe (x402.org) on the exact scenario-A payload
   x402.org/facilitator/verify → HTTP 200: {"isValid":true,"payer":"0x58Aa16206103c4eacd0461370a91acd81B316C07"}
   OK  real facilitator parsed + judged our payload (any non-signature reason = our bytes are valid x402)
 
-LIVE-FIRE GREEN — audit log: /Users/agentic/Desktop/OP_AT/x402-op-authorize/harness/out/decisions.jsonl
+LIVE-FIRE GREEN — audit log: harness/out/decisions.jsonl
 audit entries (2):
   ALLOW x402-payment  mandate satisfied
   DENY  x402-payment  [cross-rail] projected rolling-24h cross-rail spend 5.015 USD exceeds the budget 5 USD (this payment: 0.01 USD

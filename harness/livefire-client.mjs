@@ -98,7 +98,7 @@ const authCookie = (r2.headers.get('set-cookie') ?? '').includes('auth_token=');
 verify('paid request returns 200 with settlement receipt + auth cookie', r2.status === 200 && !!paymentResponse && authCookie, `status=${r2.status} receipt=${paymentResponse} cookie=${authCookie}`);
 if (paymentResponse) {
   const receipt = JSON.parse(Buffer.from(paymentResponse, 'base64').toString('utf8'));
-  log(`  settlement receipt: success=${receipt.success} tx=${String(receipt.transaction).slice(0, 18)}… (real on-chain settle when the template points at a real facilitator; simulated when using harness/local-facilitator.mjs — signature verification is real in both)`);
+  log(`  settlement receipt: success=${receipt.success} tx=${String(receipt.transaction).slice(0, 18)}… (settlement fidelity per facilitator config: demo/FIDELITY-NOTES.md)`);
 }
 const ledger = new CrossRailLedger(ledgerPath);
 const sumA = ledger.sumWindowConverted({ USDC: '1', sat: '0.0005' });
@@ -145,7 +145,7 @@ try {
   log(`  UNVERIFIABLE (network): ${e.message} — probe skipped, local verification stands`);
 }
 
-console.log(`\n${failures === 0 ? '\x1b[32m\x1b[1mLIVE-FIRE GREEN' : '\x1b[31m\x1b[1mLIVE-FIRE RED'}\x1b[0m — audit log: ${join(out, 'decisions.jsonl')}`);
+console.log(`\n${failures === 0 ? '\x1b[32m\x1b[1mLIVE-FIRE GREEN' : '\x1b[31m\x1b[1mLIVE-FIRE RED'}\x1b[0m — audit log: harness/out/decisions.jsonl`);
 const audit = readFileSync(join(out, 'decisions.jsonl'), 'utf8').trim().split('\n');
 console.log(`audit entries (${audit.length}):`);
 for (const line of audit) {
