@@ -106,6 +106,11 @@ await expectVerdict('x402: within ceiling + allowlisted payTo → ALLOW',
   authorizeX402Payment(cfgFor('cred-x402-valid'), { decoded: decoded({ value: 4_000_000 }), walletAddress: WALLET, dailyTotalRaw: 0n }), true);
 await expectVerdict('x402: over maxNotionalPerOrder → deny [notional]',
   authorizeX402Payment(cfgFor('cred-x402-valid'), { decoded: decoded({ value: 6_000_000 }), walletAddress: WALLET, dailyTotalRaw: 0n }), false, '[notional]');
+// v2.4 + Sovereign spending_limits.per_rail shape (Sovereign→x402 path).
+await expectVerdict('x402: v2.4 spending_limits in-cap → ALLOW',
+  authorizeX402Payment(cfgFor('cred-x402-v24-spending'), { decoded: decoded({ value: 4_000_000, to: fx.payTo }), walletAddress: WALLET, dailyTotalRaw: 0n }), true);
+await expectVerdict('x402: v2.4 spending_limits over-cap → deny [spending-limits]',
+  authorizeX402Payment(cfgFor('cred-x402-v24-spending'), { decoded: decoded({ value: 6_000_000, to: fx.payTo }), walletAddress: WALLET, dailyTotalRaw: 0n }), false, '[spending-limits]');
 await expectVerdict('x402: payTo not on allowList → deny [counterparty]',
   authorizeX402Payment(cfgFor('cred-x402-valid'), { decoded: decoded({ value: 1_000_000, to: '0x1111111111111111111111111111111111111111' }), walletAddress: WALLET, dailyTotalRaw: 0n }), false, '[counterparty]');
 await expectVerdict('x402: velocity under dailyVolumeCap → ALLOW',

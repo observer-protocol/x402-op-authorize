@@ -13,7 +13,10 @@ const account = createObserverX402Account(privateKeyToAccount(PRIVATE_KEY), {
     credentialPath: '/path/to/agent-delegation.json', // signed, revocable OP delegation
     issuerDid: 'did:key:z6Mk…',                       // pinned principal
     agentDid: 'did:key:z6Mk…',
-    schemaAllowlist: ['https://observerprotocol.org/schemas/delegation/v2.3.json'],
+    schemaAllowlist: [
+      'https://observerprotocol.org/schemas/delegation/v2.3.json',
+      'https://observerprotocol.org/schemas/delegation/v2.4.json',
+    ],
     rails: { 'eip155:8453': { rail: 'base-mainnet', currency: 'ETH', decimals: 18, family: 'evm' } },
     auditLog: '/var/lib/op/decisions.jsonl',
     cacheDir: '/var/lib/op/cache',

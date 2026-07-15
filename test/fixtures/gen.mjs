@@ -25,6 +25,7 @@ export function jcs(o) { return Buffer.from(JSON.stringify(sortKeys(o)), 'utf8')
 const sha = (b) => createHash('sha256').update(b).digest();
 
 export const SCHEMA_V22 = 'https://observerprotocol.org/schemas/delegation/v2.3.json';
+export const SCHEMA_V24 = 'https://observerprotocol.org/schemas/delegation/v2.4.json';
 
 /** Generate an Ed25519 did:key identity. */
 export function makeAgent() {
@@ -36,23 +37,28 @@ export function makeAgent() {
 
 /** Issue a signed delegation credential with an arbitrary actionScope +
  * tradingMandate (schema v2.3 vocabulary). */
-export function issueVac({ issuerDid, issuerPriv, issuerVm, subjectDid, actionScope, tradingMandate, validUntil = '2027-01-01T00:00:00Z' }) {
+export function issueVac({ issuerDid, issuerPriv, issuerVm, subjectDid, actionScope, tradingMandate, delegation, schemaId = SCHEMA_V22, validUntil = '2027-01-01T00:00:00Z' }) {
   const doc = {
     '@context': ['https://www.w3.org/ns/credentials/v2'],
-    id: 'urn:uuid:x402-' + b58(sha(jcs({ subjectDid, actionScope, tradingMandate })).subarray(0, 8)),
+    id: 'urn:uuid:x402-' + b58(sha(jcs({ subjectDid, actionScope, tradingMandate, delegation, schemaId })).subarray(0, 8)),
     type: ['VerifiableCredential', 'ObserverDelegationCredential'],
     issuer: issuerDid,
     validFrom: '2026-06-01T00:00:00Z',
     validUntil,
-    credentialSchema: { id: SCHEMA_V22, type: 'JsonSchema' },
+    credentialSchema: { id: schemaId, type: 'JsonSchema' },
     credentialSubject: {
       id: subjectDid,
-      authorizationLevel: 'policy',
-      authorizationConfig: { policy: { policy_id: 'x402', rail_preference: ['eip155:84532', 'lightning'] } },
+      // The Sovereign spending shape omits authorizationLevel; only stamp the
+      // policy-level fields when NOT carrying the delegation container.
+      ...(delegation ? {} : {
+        authorizationLevel: 'policy',
+        authorizationConfig: { policy: { policy_id: 'x402', rail_preference: ['eip155:84532', 'lightning'] } },
+      }),
       actionScope,
       delegationScope: { may_delegate_further: false },
       enforcementMode: 'pre_transaction_check',
       ...(tradingMandate ? { tradingMandate } : {}),
+      ...(delegation ? { delegation } : {}),
     },
   };
   const po = { '@context': doc['@context'], type: 'DataIntegrityProof', cryptosuite: 'eddsa-jcs-2022', created: '2026-07-01T00:00:00Z', verificationMethod: issuerVm, proofPurpose: 'assertionMethod' };
@@ -66,7 +72,7 @@ export function policyConfig(issuerDid, agentDid, dir, credentialPath) {
     credentialPath,
     issuerDid,
     agentDid,
-    schemaAllowlist: [SCHEMA_V22],
+    schemaAllowlist: [SCHEMA_V22, SCHEMA_V24],
     revocation: { maxStalenessHours: 24, onUnreachable: 'cache-then-deny', fetchTimeoutMs: 1500 },
     didCache: { maxStalenessHours: 24 },
     cacheDir: join(dir, 'cache'),
@@ -112,6 +118,15 @@ export function writeFixtures(dir) {
       tradingMandate: { futureConstraint: { anything: true } },
     }),
     'cred-no-constraint': issue({ actionScope: {} }),
+    // v2.4 + the Sovereign spending shape: credentialSchema.id=v2.4 and the
+    // delegation.scope.spending_limits.per_rail container /delegate emits (keyed
+    // by CAIP-2 so ctx.chain_id resolves it). 5 USDC per-transaction cap. This
+    // is the Sovereign→x402 path as a permanent conformance guard.
+    'cred-x402-v24-spending': issue({
+      schemaId: SCHEMA_V24,
+      actionScope: { allowed_rails: ['eip155:84532'] },
+      delegation: { scope: { spending_limits: { per_rail: { 'eip155:84532': { per_transaction: { max_amount: '5', currency: 'USDC' } } } } } },
+    }),
   };
 
   // Agent-self-issued: the agent signs its own mandate (signer-boundary DENY).
