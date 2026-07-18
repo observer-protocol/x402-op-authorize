@@ -2,6 +2,8 @@
 
 **The x402 instance of [OP Crossrail](https://observerprotocol.org)** — Observer Protocol's cross-rail authorization layer. Crossrail is one signed mandate, one rolling budget, and one shared spend ledger enforced across every rail an agent pays on; this engine enforces it at the x402 signer boundary. Same shared `@observer-protocol/policy-engine` core as the OWS, mppx/Tempo, Tether-WDK and L402/Lightning instances — only the decoder changed.
 
+> **Co-location contract (read before relying on the cross-rail budget):** the cross-rail ledger is a local append-only file with no cross-process locking. Every adapter sharing a budget MUST be handed the SAME path IN THE SAME PROCESS. Different paths give each rail its own budget (the budget multiplies); a shared path across processes races and under-counts. Neither of these fails closed — verify co-location in your deployment. A missing path fails closed (that rail denies).
+
 x402 (the protocol behind Cloudflare's Monetization Gateway and Coinbase's payment stack) makes the payment prove **funds**. It does not prove **authority**: nothing in the flow checks that the agent was authorized by its principal to spend, at what cap, on what. This engine closes that gap on the buyer side, where the one structural chokepoint lives: an x402 exact/EVM payment IS an EIP-3009 `transferWithAuthorization` signature. Interpose there and a denied payment never exists — not "rejected", not "reverted": **never signed**.
 
 ```js
