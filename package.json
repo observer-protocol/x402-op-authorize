@@ -1,6 +1,6 @@
 {
   "name": "@observer-protocol/x402-op-authorize",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Observer Protocol authorization for x402 payments (Cloudflare Monetization Gateway, Coinbase x402). Wraps the agent's EVM signing account and verifies a signed, revocable delegation against the proposed x402 payment at the signer boundary, fail-closed: a denied payment is never signed, so it can never settle. Shared @observer-protocol/policy-engine core: only the decoder changed.",
   "license": "MIT",
   "type": "module",
@@ -50,7 +50,7 @@
     "eddsa-jcs-2022"
   ],
   "dependencies": {
-    "@observer-protocol/policy-engine": "^0.3.2"
+    "@observer-protocol/policy-engine": "^0.3.3"
   },
   "devDependencies": {
     "@observer-protocol/l402-op-authorize": "file:../l402-op-authorize",

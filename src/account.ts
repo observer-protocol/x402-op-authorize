@@ -1,4 +1,4 @@
-import { parseConfig, appendAudit, CrossRailLedger } from '@observer-protocol/policy-engine';
+import { parseConfig, appendAudit, CrossRailLedger, assertLedgerCoreSafe } from '@observer-protocol/policy-engine';
 import type { AuditEntry, VerifierConfig } from '@observer-protocol/policy-engine';
 import type { BaseAccount, Hex, ObserverX402AccountConfig, TypedDataLike } from './adapter-types.js';
 import { ObserverDenyError } from './adapter-types.js';
@@ -38,6 +38,12 @@ interface X402AuditEntry extends AuditEntry {
 }
 
 export function createObserverX402Account(base: BaseAccount, cfg: ObserverX402AccountConfig): ObserverX402Account {
+  // Self-report the BUNDLED core: this adapter enforces with the policy-engine
+  // frozen into its own dist at build time (not the version npm resolved). Warn
+  // if that bundled core is below the ledger-safe floor; opt into a hard refuse
+  // via cfg.refuseUnsafeCore. This is the only in-band signal that a shipped
+  // build carries a fail-open/false-contend core — it travels with the bundle.
+  assertLedgerCoreSafe({ mode: (cfg as { refuseUnsafeCore?: boolean }).refuseUnsafeCore ? 'refuse' : 'warn' });
   const config: VerifierConfig = parseConfig(cfg.policy);
   const ledger = cfg.crossRailLedgerPath ? new CrossRailLedger(cfg.crossRailLedgerPath) : undefined;
   const railLabel = cfg.railLabel ?? 'x402';
