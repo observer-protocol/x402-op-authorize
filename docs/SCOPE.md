@@ -15,9 +15,11 @@ nothing to broadcast.
 
 Zero changes to any x402 library. `createObserverX402Account(base, cfg)`
 returns a structural viem account; every x402 client that takes an account
-(`x402/client` `createPaymentHeader`, `x402-fetch`, `x402-axios`, Cloudflare
-Agents SDK payments) composes with it unmodified. Same discipline as the l402
-engine's lnget env hook and the WDK policy pair.
+(`x402/client` `createPaymentHeader`, `x402-fetch`, `x402-axios`) composes
+with it unmodified. Cloudflare's Agents SDK payment client also takes a viem
+signer and is expected to compose, but it has not been live-fired here, so it
+is not listed as a supported surface (see SUPPORT-MATRIX for what has).
+Same discipline as the l402 engine's lnget env hook and the WDK policy pair.
 
 ## §3 Source of truth: the signed payload, never the 402 body
 

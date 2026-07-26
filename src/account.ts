@@ -8,9 +8,9 @@ import { authorizeX402Payment, resolvedFromX402 } from './buyer.js';
 // The viem custom-account seam for x402 buyers. Wraps a base account and
 // enforces the signed OP mandate at the signer boundary, fail-closed, before
 // delegating to the base account's real signing. Pass the result anywhere an
-// x402 client takes a viem account — x402's createPaymentHeader,
-// wrapFetchWithPayment (x402-fetch / x402-axios), or Cloudflare's Agents SDK
-// payment helpers — with zero changes to those libraries.
+// x402 client takes a viem account — x402's createPaymentHeader or
+// wrapFetchWithPayment (x402-fetch / x402-axios) — with zero changes to
+// those libraries.
 //
 // Enforcement model (see SUPPORT-MATRIX):
 //   signTypedData → the chokepoint. x402 exact/EVM payments are EIP-3009

@@ -3,7 +3,7 @@
 // Observer Protocol authorization for x402 payments, at the signer boundary.
 // Wrap the agent's viem account with createObserverX402Account and hand the
 // result to any x402 client (x402-fetch, x402-axios, x402/client
-// createPaymentHeader, Cloudflare Agents SDK payments) — every EIP-3009
+// createPaymentHeader) — every EIP-3009
 // payment authorization is evaluated against the agent's signed, revocable
 // delegation before a signature exists. Deny means the payment was never
 // signed, so it can never settle.

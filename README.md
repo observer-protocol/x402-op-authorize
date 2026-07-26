@@ -31,7 +31,7 @@ const account = createObserverX402Account(privateKeyToAccount(PRIVATE_KEY), {
 
 // Hand `account` to ANY x402 client — zero changes to those libraries:
 //   x402/client createPaymentHeader, x402-fetch wrapFetchWithPayment,
-//   x402-axios, Cloudflare Agents SDK payments.
+//   x402-axios.
 ```
 
 Every `signTypedData` call is classified. x402 payments (EIP-3009 `TransferWithAuthorization`) are evaluated against the agent's signed delegation — per-payment ceiling, counterparty (the **signed** `to`, never the 402 body's claims), velocity, cross-rail budget, credential validity/revocation/signer-boundary — fail-closed on every miss. Recognized payment suites this engine does not decode (Permit2, `receiveWithAuthorization`) deny. Unknown typed data denies by default. `signTransaction`, `signMessage` and raw `sign` deny by default.
