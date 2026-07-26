@@ -4,6 +4,11 @@ Runs the engine against Cloudflare's **unmodified**
 [x402-proxy-template](https://github.com/cloudflare/templates/tree/main/x402-proxy-template)
 on `wrangler dev`, with the real x402@1.0.1 client doing the paying.
 
+Template pin: content verified identical from `templates@72bc7c63b9` (2026-05-29)
+through `main@4814875a` (checked 2026-07-26); full re-run green, local-CI settlement
+fidelity — see `../demo/TRANSCRIPT-revalidation-2026-07-26.txt`. (The clone below is
+unpinned; this line records what an unpinned clone has actually resolved to.)
+
 ## Setup (once)
 
 ```sh
