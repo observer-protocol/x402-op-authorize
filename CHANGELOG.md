@@ -2,6 +2,17 @@
 
 All notable changes to `@observer-protocol/x402-op-authorize`.
 
+## 0.2.3
+
+### Changed — metadata honesty (no code changes)
+
+- npm description no longer names the Cloudflare Monetization Gateway, a product this
+  package has never exchanged a byte with; keywords `cloudflare` and
+  `monetization-gateway` removed.
+- "Cloudflare Agents SDK payments" removed from the composable-client lists in README,
+  source comments, and SCOPE §2: asserted but never live-fired. Its expected-but-untested
+  status is recorded in SCOPE §2; SUPPORT-MATRIX remains the list of what has been fired.
+
 ## 0.2.0
 
 ### Changed — inherits fail-closed core (behavior narrowing)
