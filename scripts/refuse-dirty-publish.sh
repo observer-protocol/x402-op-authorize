@@ -1,24 +1,26 @@
 #!/bin/bash
-# Refuse to publish from a working tree that is not committed.
+# Refuse to publish unless the published artifact corresponds to a fetchable commit.
 #
-# WHY THIS EXISTS
-# ---------------
-# Measured 2026-07-28 across this estate: of 23 published versions, 14 were
-# published from a dirty tree. The recorded npm `gitHead` is the PRE-BUMP head,
-# so the published artifact is `gitHead` plus an uncommitted edit and therefore
-# corresponds to NO committed state.
+# WHAT THIS ENFORCES
+# ------------------
+# npm records the current HEAD as `gitHead` in the published package metadata. That
+# pointer is the only machine-readable link from a published artifact back to the
+# source that produced it. It is only meaningful if two things hold at publish time:
 #
-# The consequence is not bookkeeping. Building the pinned commit and comparing
-# against the published tarball showed the pin does not reproduce the shipped
-# bytes for l402 0.3.2, wdk 0.3.2, mppx 0.2.0 and x402 0.1.0. Builds were
-# confirmed deterministic, so those are pin failures rather than build noise:
-# nobody can say which source produced those artifacts, including us.
+#   1. the working tree is CLEAN, so the artifact is built from that commit and not
+#      from that commit plus uncommitted edits, and
+#   2. the commit is PUSHED, so someone other than the publisher can actually fetch it.
 #
-# It is inconsistent per package, which is worse than uniform: policy-engine
-# 0.2.0 and 0.3.3 are clean while 0.3.0 through 0.3.2 are not. No single
-# reconstruction rule applies and nothing announces which kind you are looking at.
+# Neither is enforced by npm. This script enforces both, and fails before the tarball
+# is built rather than after it is uploaded.
 #
-# This closes it at the source. Fail loudly, before the tarball is built.
+# Untracked files count as dirty on purpose: a file that is not committed cannot be
+# reconstructed from the repository whether or not git is tracking it yet, and it may
+# still be included in the tarball via the `files` list.
+#
+# Note for anyone bumping a version: prefer `npm version <patch|minor|major>`, which
+# bumps, commits and tags atomically, over editing package.json by hand and leaving
+# the change uncommitted at publish time.
 
 set -u
 
@@ -75,9 +77,6 @@ $(echo "${DIRT}" | sed 's/^/      /')
   npm records gitHead as the CURRENT HEAD. Publishing now ships bytes built from
   HEAD plus the changes above, so the published artifact will correspond to no
   commit and nobody will be able to establish what produced it later.
-
-  This is not hypothetical: 14 of this estate's 23 published versions are already
-  in that state, and four of them provably cannot be reproduced from any commit.
 
   Commit the changes (or stash them) and publish again. If a version bump is the
   only pending change, prefer:
