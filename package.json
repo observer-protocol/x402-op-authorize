@@ -29,7 +29,7 @@
     "fixtures": "node test/fixtures/gen.mjs",
     "test": "npm run typecheck && npm run build && npm run fixtures && node test/run.mjs",
     "demo": "node demo/cross-rail.mjs",
-    "prepublishOnly": "npm run typecheck && npm test"
+    "prepublishOnly": "bash scripts/refuse-dirty-publish.sh && npm run typecheck && npm test"
   },
   "repository": {
     "type": "git",
