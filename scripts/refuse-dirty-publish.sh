@@ -61,6 +61,57 @@ UNPUSHED
   exit 1
 fi
 
+# NO LINKED RUNTIME DEPENDENCY MAY BE BUNDLED.
+# Measured 2026-07-28: three adapters declared a registry range for the shared core and
+# their committed lockfile silently overrode it with `"link": true` pointing at a sibling
+# working directory. The bundler inlines that code into dist/, so the published artifact
+# carried logic from a directory that is outside the repository, identified by no version,
+# commit or checksum, and present only on one machine.
+#
+# A clean, pushed tree does not catch this: the tree WAS clean and pushed. This is the
+# check that would have.
+LINKED="$(node -e '
+  const fs=require("fs");
+  let lock,pkg;
+  try{lock=JSON.parse(fs.readFileSync("package-lock.json","utf8"));}catch(e){process.exit(0);}
+  try{pkg=JSON.parse(fs.readFileSync("package.json","utf8"));}catch(e){process.exit(0);}
+  const runtime=new Set(Object.keys(pkg.dependencies||{}));
+  const out=[];
+  for(const[p,v]of Object.entries(lock.packages||{})){
+    if(!v||!v.link)continue;
+    const name=p.replace(/^.*node_modules\//,"");
+    if(!p.startsWith("node_modules/"))continue;
+    if(!runtime.has(name))continue;
+    out.push(`${name} -> ${v.resolved}  (package.json declares "${pkg.dependencies[name]}")`);
+  }
+  process.stdout.write(out.join("\n"));
+' 2>/dev/null)"
+if [ -n "${LINKED}" ]; then
+  cat >&2 <<LINKED_EOF
+
+  REFUSING TO PUBLISH A LINKED RUNTIME DEPENDENCY
+
+  The lockfile resolves these runtime dependencies to local directories rather than to
+  the registry:
+
+$(echo "${LINKED}" | sed 's/^/      /')
+
+  These are bundled into dist/ at build time. Publishing now ships code from a directory
+  that is outside this repository, identified by no version, commit or checksum, and
+  present only on machines that happen to have that checkout at that relative path.
+
+  Nobody can reconstruct the artifact, and nobody can say what logic is inside it.
+  The working tree being clean and pushed does not help: the linked directory is not
+  part of this repository.
+
+  Fix: relock the dependency to the registry, e.g.
+
+      npm install <name>@<exact-version>     # then confirm the lockfile has no "link": true
+
+LINKED_EOF
+  exit 1
+fi
+
 if [ -z "${DIRT}" ]; then
   echo "publish guard: working tree clean at $(git rev-parse --short HEAD). gitHead will identify the source."
   exit 0
