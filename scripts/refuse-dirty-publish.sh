@@ -75,7 +75,13 @@ LINKED="$(node -e '
   let lock,pkg;
   try{lock=JSON.parse(fs.readFileSync("package-lock.json","utf8"));}catch(e){process.exit(0);}
   try{pkg=JSON.parse(fs.readFileSync("package.json","utf8"));}catch(e){process.exit(0);}
-  const runtime=new Set(Object.keys(pkg.dependencies||{}));
+  // Runtime AND dev: esbuild --bundle inlines whatever it resolves, and does not care
+  // how the dependency is classified. Measured 2026-07-28: ows-op-verify declares the
+  // shared core as a devDependency, its lockfile links it to a sibling working
+  // directory, and it bundles it into dist anyway. A runtime-only check skipped it, so
+  // the guard written for exactly this failure could not see the one package it was
+  // happening on. Classification is not the property that matters; bundling is.
+  const runtime=new Set([...Object.keys(pkg.dependencies||{}),...Object.keys(pkg.devDependencies||{})]);
   const out=[];
   for(const[p,v]of Object.entries(lock.packages||{})){
     if(!v||!v.link)continue;
