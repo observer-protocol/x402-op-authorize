@@ -98,7 +98,24 @@ const authCookie = (r2.headers.get('set-cookie') ?? '').includes('auth_token=');
 verify('paid request returns 200 with settlement receipt + auth cookie', r2.status === 200 && !!paymentResponse && authCookie, `status=${r2.status} receipt=${paymentResponse} cookie=${authCookie}`);
 if (paymentResponse) {
   const receipt = JSON.parse(Buffer.from(paymentResponse, 'base64').toString('utf8'));
-  log(`  settlement receipt: success=${receipt.success} tx=${String(receipt.transaction).slice(0, 18)}… (settlement fidelity per facilitator config: demo/FIDELITY-NOTES.md)`);
+  // PERSIST THE FULL HASH. This previously logged String(receipt.transaction).slice(0, 18)
+  // and wrote the receipt nowhere, so the ONLY field making this run independently
+  // checkable was destroyed on every run, automatically. The settlement record survived
+  // only in a hand-maintained markdown file. A transcript that needs a hand-written
+  // companion to be citeable is not evidence of anything.
+  log(`  settlement receipt: success=${receipt.success} tx=${receipt.transaction}`);
+  log(`  verify independently: https://sepolia.basescan.org/tx/${receipt.transaction}`);
+  writeFileSync(join(out, 'settlement-receipt.json'), JSON.stringify({
+    success: receipt.success,
+    txHash: receipt.transaction,
+    network: receipt.network ?? requirement?.network ?? null,
+    payer: receipt.payer ?? account.address,
+    payTo: requirement?.payTo ?? null,
+    amountRaw: requirement?.maxAmountRequired ?? null,
+    asset: requirement?.asset ?? null,
+    explorer: `https://sepolia.basescan.org/tx/${receipt.transaction}`,
+    raw: receipt,
+  }, null, 2));
 }
 const ledger = new CrossRailLedger(ledgerPath);
 const sumA = ledger.sumWindowConverted({ USDC: '1', sat: '0.0005' });
