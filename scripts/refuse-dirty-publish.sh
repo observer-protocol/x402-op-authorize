@@ -131,6 +131,60 @@ LINKED_EOF
   exit 1
 fi
 
+# ─── The core resolved in the lockfile must satisfy the floor package.json declares ───
+#
+# THE QUIET SHAPE. The other three failures this guard catches are visible on sight: a
+# "link": true, a file: path, a .tgz in a scratch directory. This one is a perfectly
+# well-formed registry resolution at a STALE VERSION, and it passes every other check here.
+#
+# It nearly shipped: one package in the 0.4.0 fanout carried a committed lockfile pinning the
+# core to 0.3.3 while declaring ">=0.4.0 <1.0.0". Build succeeded, suite passed, guard was
+# silent, and publishing would have shipped a superseded core with nothing objecting.
+#
+# The floor is derivable from what is already here, so this needs no new input and cannot
+# drift from the release: the range's lower bound is the version being fanned out.
+STALE_CORE="$(node -e '
+  const fs=require("fs");
+  let pkg,lock;
+  try{pkg=JSON.parse(fs.readFileSync("package.json","utf8"));lock=JSON.parse(fs.readFileSync("package-lock.json","utf8"));}catch(e){process.exit(0)}
+  const NAME="@observer-protocol/policy-engine";
+  const decl=(pkg.dependencies||{})[NAME]||(pkg.devDependencies||{})[NAME];
+  if(!decl)process.exit(0);
+  const m=/>=\s*([0-9]+)\.([0-9]+)\.([0-9]+)/.exec(decl);
+  if(!m)process.exit(0);                      // no floor declared, nothing to compare
+  const entry=(lock.packages||{})["node_modules/"+NAME];
+  if(!entry||!entry.version)process.exit(0);   // absence is the linked-dependency check above
+  const got=entry.version.split(".").map(Number);
+  const floor=[+m[1],+m[2],+m[3]];
+  const lower=got[0]<floor[0]||(got[0]===floor[0]&&(got[1]<floor[1]||(got[1]===floor[1]&&got[2]<floor[2])));
+  if(lower)process.stdout.write(entry.version+" | "+decl);
+' 2>/dev/null)"
+if [ -n "${STALE_CORE}" ]; then
+  RESOLVED="${STALE_CORE%% | *}"; DECLARED="${STALE_CORE##* | }"
+  cat >&2 <<STALE_EOF
+
+  REFUSING TO PUBLISH AGAINST A STALE CORE
+
+  package.json declares  @observer-protocol/policy-engine  ${DECLARED}
+  the lockfile resolves            ${RESOLVED}
+
+  The resolution is well-formed and from the registry, so every other check here passes.
+  The lockfile is simply older than the release: the build, the suite and this guard would
+  all be green while the artifact carried a superseded core.
+
+  This is what the fanout exists to prevent. Every adapter bundles the core into dist/ at
+  build time, so publishing now ships ${RESOLVED} to consumers who will believe they have
+  ${DECLARED}.
+
+  Fix: regenerate the lockfile against the registry.
+
+      rm -rf node_modules package-lock.json && npm install
+      npm run build && npm test
+
+STALE_EOF
+  exit 1
+fi
+
 if [ -z "${DIRT}" ]; then
   echo "publish guard: working tree clean at $(git rev-parse --short HEAD). gitHead will identify the source."
   exit 0
