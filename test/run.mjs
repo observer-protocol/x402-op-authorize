@@ -2,6 +2,7 @@
 // Every rule is exercised on BOTH sides (allow and deny) — path-green is not
 // component-green. Summary line format is parsed by the shared parity harness:
 //   "N/M conformance cases passed"
+import { hashTypedData } from 'viem';
 import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
@@ -206,13 +207,43 @@ await expectVerdict('x402: unknown token contract under amount cap → deny [une
   // allows, and `granting-party` (the schema DEFAULT) needs to know who granted the authorization
   // being cancelled, which requires the nonce. src/x402.ts:63-65 returns { kind, reason } and reads
   // no message fields, so the nonce is discarded and provenance is unanswerable.
+  // STILL PINNED: the adapter continues to sign, because routing it to the service is the
+  // remaining half. When PaymentService.cancel is wired in, this assertion must fail and be
+  // rewritten deliberately, exactly as the decoder pin above was.
   check('X402-D5 PINNED: cancel-authorization is signed on the DEFAULT config, no knob set',
     await (async () => {
       const sig = await mk('cred-cross-rail').signTypedData(typedData({ primaryType: 'CancelAuthorization' }));
       return typeof sig === 'string' && sig.startsWith('0x');
     })());
-  check('X402-D5 PINNED: the decoder discards the nonce, which is why the fix is blocked',
-    decodeX402TypedData(typedData({ primaryType: 'CancelAuthorization' })).nonce === undefined);
+  // WAS: 'the decoder discards the nonce, which is why the fix is blocked'. That pin has been
+  // REWRITTEN DELIBERATELY rather than edited to match, because the blocker it recorded is gone:
+  // the decoder now carries authorizer and nonce.
+  //
+  // ASSERTED AGAINST A viem-BUILT PAYLOAD, not a fixture of our own. The authority on what an
+  // EIP-3009 CancelAuthorization message contains is the SDK that builds it, and a fixture we
+  // wrote could only confirm our own reading. Same reason the transfer envelope was checked
+  // against viem. This is a payload-classification path and the registry entry warns it is the
+  // class that drifts when a counterparty SDK renames a typed-data suite.
+  {
+    const real = {
+      domain: { name: 'USDC', version: '2', chainId: 84532, verifyingContract: USDC_SEPOLIA },
+      primaryType: 'CancelAuthorization',
+      types: { CancelAuthorization: [{ name: 'authorizer', type: 'address' }, { name: 'nonce', type: 'bytes32' }] },
+      message: { authorizer: WALLET, nonce: '0x' + 'cd'.repeat(32) },
+    };
+    // viem hashing it is the evidence that this IS a well-formed CancelAuthorization, rather than
+    // a shape we invented that our decoder happens to accept.
+    check('decode: the payload viem accepts as CancelAuthorization is well-formed',
+      typeof hashTypedData(real) === 'string');
+    const d = decodeX402TypedData(real);
+    check('decode: CancelAuthorization carries the authorizer', d.authorizer === WALLET);
+    check('decode: CancelAuthorization carries the nonce', d.nonce === '0x' + 'cd'.repeat(32));
+    // REPORTS, DOES NOT REPAIR. A missing field is reported absent rather than invented, because
+    // an invented nonce would resolve provenance against the wrong payment.
+    const bare = decodeX402TypedData({ ...real, message: {} });
+    check('decode: a message without the fields reports them ABSENT rather than inventing them',
+      bare.kind === 'cancel-authorization' && bare.authorizer === undefined && bare.nonce === undefined);
+  }
   // BOTH OUTCOMES: a payment-bearing structure on the same path still denies, so the pin above is
   // about this branch and not about the guard having been disabled wholesale.
   check('X402-D5 PINNED: ...while a payment-bearing structure on the same path still DENIES',

@@ -35,7 +35,16 @@ export type DecodedX402 =
     }
   | { kind: 'eip3009-receive'; reason: string }
   | { kind: 'permit2-witness'; reason: string }
-  | { kind: 'cancel-authorization'; reason: string }
+  /** CARRIES THE MESSAGE FIELDS, AND DID NOT.
+   *
+   * This returned `{ kind, reason }` and read nothing from the message, which discarded WHICH
+   * authorization a cancellation targets. That is lossy for reasons unrelated to any one
+   * consumer: any caller wanting to know what is being revoked needs these, and a decoder that
+   * drops them forces every consumer to re-decode the payload itself.
+   *
+   * `undefined` when the message does not carry them: this decoder REPORTS, it does not repair,
+   * and inventing a nonce would be worse than reporting its absence. */
+  | { kind: 'cancel-authorization'; reason: string; authorizer?: string; nonce?: string }
   | { kind: 'unknown'; reason: string };
 
 function asBigInt(v: unknown): bigint | undefined {
@@ -61,7 +70,18 @@ export function decodeX402TypedData(td: TypedDataLike): DecodedX402 {
     return { kind: 'permit2-witness', reason: 'Permit2 permitWitnessTransferFrom moves funds (x402 permit2 / upto asset-transfer methods) — not decoded in v1' };
   }
   if (pt === 'CancelAuthorization') {
-    return { kind: 'cancel-authorization', reason: 'EIP-3009 cancelAuthorization revokes an outstanding authorization and moves no funds' };
+    // EIP-3009 CancelAuthorization is (authorizer address, nonce bytes32). Verified against
+    // viem's hashTypedData rather than asserted: the authority on what this message contains is
+    // the SDK that builds it, which is the same reason the transfer envelope was checked there.
+    const m = (td as { message?: Record<string, unknown> }).message ?? {};
+    const authorizer = typeof m['authorizer'] === 'string' ? m['authorizer'] : undefined;
+    const nonce = typeof m['nonce'] === 'string' ? m['nonce'] : undefined;
+    return {
+      kind: 'cancel-authorization',
+      reason: 'EIP-3009 cancelAuthorization revokes an outstanding authorization and moves no funds',
+      ...(authorizer !== undefined ? { authorizer } : {}),
+      ...(nonce !== undefined ? { nonce } : {}),
+    };
   }
   if (pt !== 'TransferWithAuthorization') {
     return { kind: 'unknown', reason: `primaryType ${JSON.stringify(pt ?? null)} is not a payment structure this engine recognizes` };
