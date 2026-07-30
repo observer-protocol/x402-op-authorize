@@ -66,7 +66,25 @@ export function createObserverX402Account(base: BaseAccount, cfg: ObserverX402Ac
     const decoded = decodeX402TypedData(typedData);
 
     if (decoded.kind === 'cancel-authorization') {
-      audit({ kind: 'typed-data', decision: 'allow', reason: `cancelAuthorization signed — ${decoded.reason}`, notes: [] });
+      // ROUTED, NOT EVALUATED HERE. The adapter reports what it decoded; the host decides.
+      const resolve = cfg.resolveCancelVerdict;
+      if (resolve === undefined) {
+        // Nobody to ask. Behaviour unchanged, and now VISIBLE PER EVENT rather than silent: the
+        // audit entry says the cancellation was not evaluated, so a reader of the log can tell
+        // "permitted" from "never assessed". Those were indistinguishable before.
+        audit({
+          kind: 'typed-data', decision: 'allow',
+          reason: `cancelAuthorization signed WITHOUT A VERDICT (no resolveCancelVerdict configured) — ${decoded.reason}`,
+          notes: ['X402-D5: this deployment has no service to ask, so provenance could not be established. Configure resolveCancelVerdict to route this to a host that holds the mandate and the reservation record.'],
+        });
+        return base.signTypedData(typedData);
+      }
+      const v = await resolve({ authorizer: decoded.authorizer, nonce: decoded.nonce });
+      if (!v.allow) {
+        audit({ kind: 'typed-data', decision: 'deny', reason: v.reason, notes: [] });
+        return denyThrow(v.reason, []);
+      }
+      audit({ kind: 'typed-data', decision: 'allow', reason: `cancelAuthorization permitted by the host — ${v.reason}`, notes: [] });
       return base.signTypedData(typedData);
     }
     if (decoded.kind === 'eip3009-receive' || decoded.kind === 'permit2-witness') {

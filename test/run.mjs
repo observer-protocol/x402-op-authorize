@@ -3,7 +3,7 @@
 // component-green. Summary line format is parsed by the shared parity harness:
 //   "N/M conformance cases passed"
 import { hashTypedData } from 'viem';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -207,13 +207,66 @@ await expectVerdict('x402: unknown token contract under amount cap → deny [une
   // allows, and `granting-party` (the schema DEFAULT) needs to know who granted the authorization
   // being cancelled, which requires the nonce. src/x402.ts:63-65 returns { kind, reason } and reads
   // no message fields, so the nonce is discarded and provenance is unanswerable.
-  // STILL PINNED: the adapter continues to sign, because routing it to the service is the
-  // remaining half. When PaymentService.cancel is wired in, this assertion must fail and be
-  // rewritten deliberately, exactly as the decoder pin above was.
-  check('X402-D5 PINNED: cancel-authorization is signed on the DEFAULT config, no knob set',
+  // ─── X402-D5: TWO FACTS ABOUT TWO DEPLOYMENTS ────────────────────────────
+  //
+  // The pin said "signed on the DEFAULT config". That is STILL TRUE for a library deployment and
+  // NO LONGER TRUE for a service one, so it was split rather than deleted. Same shape as X402-P2
+  // and X402-P3: collapsing two deployments to one verdict would be false about one of them.
+  //
+  // LIBRARY: no host to ask, so the behaviour is unchanged and the path stays open. Deny-blanket
+  // was rejected — it breaks legitimate housekeeping on every library deployment and would be the
+  // third arrival of a refusal already rejected twice.
+  check('X402-D5 LIBRARY: with no resolver, the cancellation is still signed',
     await (async () => {
       const sig = await mk('cred-cross-rail').signTypedData(typedData({ primaryType: 'CancelAuthorization' }));
       return typeof sig === 'string' && sig.startsWith('0x');
+    })());
+  // But NO LONGER SILENTLY. "permitted" and "never assessed" were indistinguishable in the audit
+  // log; now a reader can tell them apart, which is the difference between an open defect that is
+  // visible and one that is not.
+  check('X402-D5 LIBRARY: ...and the audit says it was signed WITHOUT a verdict',
+    await (async () => {
+      const logPath = join(work, 'cancel-audit.jsonl');
+      const acct = createObserverX402Account(baseAccount, {
+        policy: { ...policyConfig(fx.principal.did, fx.agent.did, work, fx.paths['cred-cross-rail']), auditLog: logPath },
+      });
+      await acct.signTypedData(typedData({ primaryType: 'CancelAuthorization' }));
+      const written = readFileSync(logPath, 'utf8');
+      return /WITHOUT A VERDICT/.test(written) && /no service to ask/.test(written);
+    })());
+
+  // SERVICE: a host that holds the mandate answers, and the path closes.
+  check('X402-D5 SERVICE: a host DENY refuses the signature',
+    await (async () => {
+      const acct = mk('cred-cross-rail', {
+        resolveCancelVerdict: async () => ({ allow: false, reason: 'Refused by the mandate: granted by approver human-1.' }),
+      });
+      try { await acct.signTypedData(typedData({ primaryType: 'CancelAuthorization' })); return false; }
+      catch (e) { return e instanceof ObserverDenyError && /approver human-1/.test(e.message); }
+    })());
+  check('X402-D5 SERVICE: a host ALLOW signs it',
+    await (async () => {
+      const acct = mk('cred-cross-rail', {
+        resolveCancelVerdict: async () => ({ allow: true, reason: 'Granted by the mandate.' }),
+      });
+      const sig = await acct.signTypedData(typedData({ primaryType: 'CancelAuthorization' }));
+      return typeof sig === 'string' && sig.startsWith('0x');
+    })());
+  // The facts the host decides on must actually REACH it. A resolver called with undefined nonce
+  // resolves provenance against nothing, which is the decoder defect one layer along.
+  check('X402-D5 SERVICE: the decoded authorizer and nonce reach the host',
+    await (async () => {
+      let seen;
+      const acct = mk('cred-cross-rail', {
+        resolveCancelVerdict: async (f) => { seen = f; return { allow: true, reason: 'ok' }; },
+      });
+      await acct.signTypedData({
+        domain: { name: 'USDC', version: '2', chainId: 84532, verifyingContract: USDC_SEPOLIA },
+        primaryType: 'CancelAuthorization',
+        types: { CancelAuthorization: [{ name: 'authorizer', type: 'address' }, { name: 'nonce', type: 'bytes32' }] },
+        message: { authorizer: WALLET, nonce: '0x' + 'ef'.repeat(32) },
+      });
+      return seen?.authorizer === WALLET && seen?.nonce === '0x' + 'ef'.repeat(32);
     })());
   // WAS: 'the decoder discards the nonce, which is why the fix is blocked'. That pin has been
   // REWRITTEN DELIBERATELY rather than edited to match, because the blocker it recorded is gone:
