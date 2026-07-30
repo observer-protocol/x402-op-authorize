@@ -76,6 +76,7 @@ async function expectVerdict(name, promise, wantAllow, wantReasonPart) {
     decodeX402TypedData(typedData({ primaryType: 'ReceiveWithAuthorization' })).kind === 'eip3009-receive');
   check('decode: CancelAuthorization → benign',
     decodeX402TypedData(typedData({ primaryType: 'CancelAuthorization' })).kind === 'cancel-authorization');
+
   check('decode: missing value → unknown (undecodable fails closed downstream)',
     decodeX402TypedData({ primaryType: 'TransferWithAuthorization', domain: { chainId: 84532, verifyingContract: USDC_SEPOLIA }, message: { from: WALLET, to: fx.payTo } }).kind === 'unknown');
 }
@@ -184,6 +185,42 @@ await expectVerdict('x402: unknown token contract under amount cap → deny [une
     crossRailLedgerPath: join(work, 'account-ledger.jsonl'),
     ...extra,
   });
+
+  // ─── X402-D5 PINNING ──────────────────────────────────────────────────────
+  //
+  // THESE ASSERT A DEFECT, DELIBERATELY. X402-D5 is open in the registry: the
+  // cancel-authorization branch signs on the DEFAULT config with no mandate evaluation
+  // (src/account.ts:68-71). It is an ALLOW returned where the verdict should be evaluated, not a
+  // reachability failure, so nothing here is a bypass.
+  //
+  // Pinned before anything moves it, so that when the evaluation lands these assertions FAIL and
+  // must be rewritten deliberately rather than a behaviour change slipping past a green suite.
+  //
+  // INTERIM IS ALLOW, AND THAT IS A DECISION RATHER THAN INERTIA. Deny-blanket breaks legitimate
+  // housekeeping on every deployment on the default config, and would be the third arrival of a
+  // blanket refusal already rejected twice. Allow-blanket is the shipped behaviour, recorded open,
+  // and bounded by cancelling moving no money.
+  //
+  // THE FIX IS BLOCKED ON THE DECODER, NOT ON THE VOCABULARY. actionScope.cancellationAuthority is
+  // served at observerprotocol.org/schemas/delegation/v2.5.json since 2026-07-30. But `agent`
+  // allows, and `granting-party` (the schema DEFAULT) needs to know who granted the authorization
+  // being cancelled, which requires the nonce. src/x402.ts:63-65 returns { kind, reason } and reads
+  // no message fields, so the nonce is discarded and provenance is unanswerable.
+  check('X402-D5 PINNED: cancel-authorization is signed on the DEFAULT config, no knob set',
+    await (async () => {
+      const sig = await mk('cred-cross-rail').signTypedData(typedData({ primaryType: 'CancelAuthorization' }));
+      return typeof sig === 'string' && sig.startsWith('0x');
+    })());
+  check('X402-D5 PINNED: the decoder discards the nonce, which is why the fix is blocked',
+    decodeX402TypedData(typedData({ primaryType: 'CancelAuthorization' })).nonce === undefined);
+  // BOTH OUTCOMES: a payment-bearing structure on the same path still denies, so the pin above is
+  // about this branch and not about the guard having been disabled wholesale.
+  check('X402-D5 PINNED: ...while a payment-bearing structure on the same path still DENIES',
+    await (async () => {
+      try { await mk('cred-cross-rail').signTypedData(typedData({ primaryType: 'ReceiveWithAuthorization' })); return false; }
+      catch (e) { return e instanceof ObserverDenyError; }
+    })());
+  // ──────────────────────────────────────────────────────────────────────────
 
   const acct = mk('cred-cross-rail');
   const sig = await acct.signTypedData(typedData({ value: 1_000_000 }));
