@@ -76,3 +76,20 @@ Take 4's last hash remains visible in take 4's superseded transcript
 (`tx=0xa11d4124267887fe…`); take 5 is the committed one. A signed-but-flaked leg still consumes its amount
 from the cross-rail budget (a signed authorization is live spend authority
 until `validBefore`) — the budget trips early, never late, by design.
+
+## `cross-rail.mjs` moved out, 2026-07-30
+
+The cross-rail demo now lives in `op-exclusivity-harness/cross-rail/`, with the rest of the
+cross-adapter material.
+
+It needed `l402-op-authorize` and `wdk-op-policy` as `file:` devDependencies, which made every
+publish of this package resolve two dependencies outside the registry. The publish guard
+refuses that, correctly.
+
+The alternative was teaching the guard to distinguish a dependency that reaches `dist/` from
+one that merely sits in the graph. That would have given a publish control a judgement, and a
+judgement in a publish control is something argued with under deadline pressure. The value of
+"no non-registry resolution, no exceptions" is that there is nothing to argue.
+
+The demo's need was legitimate and was not a published-package need. Moving it out removes the
+need rather than teaching the control to make an exception for the first thing that asks.

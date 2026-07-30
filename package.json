@@ -1,6 +1,6 @@
 {
   "name": "@observer-protocol/x402-op-authorize",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Observer Protocol authorization for x402 payments. Wraps the agent's EVM signing account and verifies a signed, revocable delegation against the proposed x402 payment at the signer boundary, fail-closed: a denied payment is never signed, so it can never settle. Shared @observer-protocol/policy-engine core: only the decoder changed.",
   "license": "MIT",
   "type": "module",
@@ -28,7 +28,6 @@
     "typecheck": "tsc --noEmit",
     "fixtures": "node test/fixtures/gen.mjs",
     "test": "npm run typecheck && npm run build && npm run fixtures && node test/run.mjs",
-    "demo": "node demo/cross-rail.mjs",
     "prepublishOnly": "bash scripts/refuse-dirty-publish.sh && npm run typecheck && npm test"
   },
   "repository": {
@@ -51,8 +50,6 @@
     "@observer-protocol/policy-engine": ">=0.4.0 <1.0.0"
   },
   "devDependencies": {
-    "@observer-protocol/l402-op-authorize": "file:../l402-op-authorize",
-    "@observer-protocol/wdk-op-policy": "file:../wdk-op-policy",
     "@types/node": "^25.9.2",
     "esbuild": "^0.21.0",
     "typescript": "^5.4.0",

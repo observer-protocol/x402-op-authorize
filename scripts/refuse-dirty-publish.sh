@@ -88,25 +88,38 @@ LINKED="$(node -e '
     const name=p.replace(/^.*node_modules\//,"");
     if(!p.startsWith("node_modules/"))continue;
     if(!runtime.has(name))continue;
-    out.push(`${name} -> ${v.resolved}  (package.json declares "${pkg.dependencies[name]}")`);
+    // Report the map the dependency was ACTUALLY found in. This read `pkg.dependencies`
+    // unconditionally and printed "undefined" for anything declared in devDependencies,
+    // which is most of what it catches. A guard whose message is demonstrably false about
+    // what it found is a guard someone relaxes on the strength of its own inaccuracy.
+    const map = (pkg.dependencies||{})[name] !== undefined ? "dependencies"
+              : (pkg.devDependencies||{})[name] !== undefined ? "devDependencies" : "(not declared)";
+    const declared = map === "(not declared)" ? "" : ` as "${(pkg[map]||{})[name]}"`;
+    out.push(`${name} -> ${v.resolved}  (declared in ${map}${declared})`);
   }
   process.stdout.write(out.join("\n"));
 ' 2>/dev/null)"
 if [ -n "${LINKED}" ]; then
   cat >&2 <<LINKED_EOF
 
-  REFUSING TO PUBLISH A LINKED RUNTIME DEPENDENCY
+  REFUSING TO PUBLISH: A DEPENDENCY RESOLVES OUTSIDE THE REGISTRY
 
-  The lockfile resolves these runtime dependencies to local directories rather than to
-  the registry:
+  The lockfile resolves these dependencies to local directories rather than to the
+  registry:
 
 $(echo "${LINKED}" | sed 's/^/      /')
 
-  These are bundled into dist/ at build time. Publishing now ships code from a directory
-  that is outside this repository, identified by no version, commit or checksum, and
-  present only on machines that happen to have that checkout at that relative path.
+  THIS CHECKS RESOLUTION, NOT INCLUSION. It does not claim these reach dist/, and it
+  does not need to: a published artifact must be reconstructible from published inputs,
+  and a dependency resolved from a directory outside this repository is identified by no
+  version, commit or checksum and exists only on machines that happen to have that
+  checkout at that relative path. That is true whether or not the code is bundled.
 
-  Nobody can reconstruct the artifact, and nobody can say what logic is inside it.
+  The rule has a real instance behind it rather than being prudence: this repository was
+  found resolving its core to a .tgz in an ephemeral scratch directory from an earlier
+  tooling session, pinned to a superseded version, on a path that no longer existed.
+  It had been building against a core nobody could reconstruct or identify, us included.
+
   The working tree being clean and pushed does not help: the linked directory is not
   part of this repository.
 
