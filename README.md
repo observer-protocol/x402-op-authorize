@@ -9,11 +9,13 @@
 > estate or on the production host.
 >
 > **Versions.** Published `0.4.0`.
-> The Observer Protocol API's `rails.registry.json` pins `0.2.0`, which is behind. **That pin is
-> not tracked to publication and must not be read as the current version.** Every rail in that
-> registry is currently behind its published package, some by two minors. Whether the registry
-> ought to track publication or deliberately lag is an open decision, recorded here rather than
-> quietly corrected.
+> The Observer Protocol API's rail registry no longer carries a pin. **Ruled 2026-08-05:** the
+> field was named `version` and read as "these versions are known to work together", while
+> nothing enforced or checked it — the running server never reads it. It is now
+> `published_version_recorded` with a required `recorded_on` date: what was published when
+> someone last looked. It does not track publication and is not automated to. **It is not a
+> statement that these versions have been verified together** — no such verification exists,
+> and a real compatibility matrix would be a separate artifact.
 >
 > Tiers for all seven Observer Protocol adapters are listed together in
 > [`op-policy-engine`](https://github.com/observer-protocol/op-policy-engine#adapter-support-tiers).
