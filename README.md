@@ -1,5 +1,23 @@
 # x402-op-authorize
 
+> **SUPPORT TIER — REFERENCE IMPLEMENTATION.** Not under active maintenance, and no production
+> consumer. Read it, run it, copy from it; do not assume support.
+>
+> **What backs it.** Exercised by our own conformance harness: `op-exclusivity-harness` imports
+> `createObserverX402Account` in `attacks/x402/attacks.mjs` and `attacks/colocation-claim-probe.mjs`
+> through a `file:` dependency. No consumer outside our harnesses was found in the Observer Protocol
+> estate or on the production host.
+>
+> **Versions.** Published `0.4.0`.
+> The Observer Protocol API's `rails.registry.json` pins `0.2.0`, which is behind. **That pin is
+> not tracked to publication and must not be read as the current version.** Every rail in that
+> registry is currently behind its published package, some by two minors. Whether the registry
+> ought to track publication or deliberately lag is an open decision, recorded here rather than
+> quietly corrected.
+>
+> Tiers for all seven Observer Protocol adapters are listed together in
+> [`op-policy-engine`](https://github.com/observer-protocol/op-policy-engine#adapter-support-tiers).
+
 **The x402 instance of [OP Crossrail](https://observerprotocol.org)** — Observer Protocol's cross-rail authorization layer. Crossrail is one signed mandate, one rolling budget, and one shared spend ledger enforced across every rail an agent pays on; this engine enforces it at the x402 signer boundary. Same shared `@observer-protocol/policy-engine` core as the OWS, mppx/Tempo, Tether-WDK and L402/Lightning instances — only the decoder changed.
 
 > **Co-location contract (read before relying on the cross-rail budget):** the cross-rail ledger is a local append-only file with no cross-process locking. Every adapter sharing a budget MUST be handed the SAME path IN THE SAME PROCESS. Different paths give each rail its own budget (the budget multiplies); a shared path across processes races and under-counts. Neither of these fails closed — verify co-location in your deployment. A missing path fails closed (that rail denies).
