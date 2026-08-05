@@ -1,3 +1,10 @@
+> # ARCHIVED. The code moved to [`op-adapters`](https://github.com/observer-protocol/op-adapters/tree/main/packages/x402-op-authorize).
+>
+> **Your installed tarball still verifies and nothing was unpublished.** Versions of
+> `@observer-protocol/x402-op-authorize` published before 2026-08-05 name *this* repository in their `repository` field
+> and their `gitHead` resolves against *this* history, which is why this repository stays public and
+> readable rather than being deleted. New releases come from `op-adapters`.
+
 # x402-op-authorize
 
 > **SUPPORT TIER — REFERENCE IMPLEMENTATION.** Not under active maintenance, and no production
